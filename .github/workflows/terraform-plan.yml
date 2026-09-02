@@ -25,9 +25,9 @@ jobs:
       with:
         creds: ${{ secrets.AZURE_SVC_PRINCIPAL }}
     - name: Terraform Init
-      run: terraform init -input=false -backend-config="key=${environment}.tfstate" -backend-config="access_key=${{ secrets.STATE_FILE_CONTAINER_ACCESS_KEY }}"
+      run: terraform init -input=false -backend-config="key=${environment}-gh-actions-demo.tfstate" -backend-config="access_key=${{ secrets.STATE_FILE_CONTAINER_ACCESS_KEY }}"
     - name: Terraform Plan
-      run: terraform plan -input=false -var-file="${environment}.tfvars" -out=tfplan
+      run: terraform plan -input=false -var-file="environment-${environment}.tfvars" -out=tfplan
     - name: Terraform Show (human-readable plan)
       run: terraform show -no-color tfplan > tfplan.txt
     - name: Upload Plan Artifact (binary, used by apply)

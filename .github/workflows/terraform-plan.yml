@@ -1,0 +1,45 @@
+name: 'Terraform Plan'
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        required: true
+        type: choice
+        options:
+          - dev
+          - prod
+        default: dev
+jobs:
+  terraform:
+    name: 'Terraform Plan'
+    runs-on: ubuntu-latest
+    env:
+      environment: ${{ github.event.inputs.environment }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v4
+    - name: Azure Login
+      uses: azure/login@v2
+      with:
+        creds: ${{ secrets.AZURE_SVC_PRINCIPAL }}
+    - name: Terraform Init
+      run: terraform init -input=false -backend-config="key=${environment}.tfstate" -backend-config="access_key=${{ secrets.STATE_FILE_CONTAINER_ACCESS_KEY }}"
+    - name: Terraform Plan
+      run: terraform plan -input=false -var-file="${environment}.tfvars" -out=tfplan
+    - name: Terraform Show (human-readable plan)
+      run: terraform show -no-color tfplan > tfplan.txt
+    - name: Upload Plan Artifact (binary, used by apply)
+      uses: actions/upload-artifact@v4
+      with:
+        name: tfplan-${{ env.environment }}
+        path: tfplan
+        retention-days: 5
+ 
+    - name: Upload Plan Artifact (readable, for review)
+      uses: actions/upload-artifact@v4
+      with:
+        name: tfplan-${{ env.environment }}-readable
+        path: tfplan.txt
+        retention-days: 5

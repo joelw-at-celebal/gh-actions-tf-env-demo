@@ -1,0 +1,17 @@
+name: 'Setup Azure and Terraform'
+description: 'Checks out code, sets up Terraform, and logs into Azure'
+inputs:
+  azure-credentials:
+    description: 'Azure Service Principal JSON credentials'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v4
+    - name: Azure Login
+      uses: azure/login@v2
+      with:
+        creds: ${{ inputs.azure-credentials }}
